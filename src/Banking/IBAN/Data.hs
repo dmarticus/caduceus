@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module IBAN.Data
+module Banking.IBAN.Data
   (structures) where
 
 import Data.Text (Text)

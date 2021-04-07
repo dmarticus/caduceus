@@ -3,27 +3,48 @@ name:               caduceus
 version:            0.1.0.0
 synopsis:           A library to validate and generate IBANs and SWIFT codes.
 description:        Validate and generate international wire data.  Handles IBANs and SWIFT codes.
+homepage:           https://github.com/dmarticus/caduceus#readme
 bug-reports:        https://github.com/dmarticus/caduceus/issues
 author:             Dylan Martin
 maintainer:         dmarticus@gmail.com
-homepage:            https://github.com/dmarticus/caduceus
 -- license:             MIT
 -- license-file:        LICENSE
-copyright:           Dylan Martin, 2021
-category:            Finance
-build-type:          Simple
+copyright:          Dylan Martin, 2021
+category:           Finance
+build-type:         Simple
 extra-source-files:
     Changelog.md
     Readme.md
 
-executable caduceus
-    main-is:          Main.hs
+source-repository head
+  type: git
+  location: https://github.com/dmarticus/caduceus
 
-    -- Modules included in this executable, other than Main.
-    -- other-modules:
+library
+  exposed-modules:    Banking.IBAN
+                    , Banking.IBAN.Data
+                    , Banking.IBAN.Internal  
+  other-extensions:   OverloadedStrings
+  hs-source-dirs:     src
+  ghc-options:        -threaded -rtsopts -with-rtsopts=-N
+  build-depends:      base >=4.7 && <5
+                    , containers >=0.3 && <0.7
+                    , iso3166-country-codes
+                    , text >=0.11 && <1.3
+                    , unordered-containers ==0.2.*
+  default-language:   Haskell2010
 
-    -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
-    build-depends:    base ^>=4.14.1.0
-    hs-source-dirs:   app
-    default-language: Haskell2010
+test-suite caduceus-test
+  type:               exitcode-stdio-1.0
+  main-is:            Main.hs
+  other-extensions:   OverloadedStrings
+  other-modules:      IBANRegistryExamples
+  hs-source-dirs:     test
+  ghc-options:        -threaded -rtsopts -with-rtsopts=-N
+  build-depends:      base >=4.7 && <5
+                    , HUnit
+                    , tasty
+                    , tasty-hunit
+                    , text
+                    , caduceus
+  default-language:   Haskell2010

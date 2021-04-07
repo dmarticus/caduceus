@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 
-module IBAN.Internal
+module Banking.IBAN.Internal
   ( IBAN(..)
   , IBANError(..)
   , parseIBAN
@@ -27,7 +27,7 @@ import           Data.String (IsString, fromString)
 import           Data.Text (Text)
 import qualified Data.Text as T
 import           Data.Typeable (Typeable)
-import qualified IBAN.Data as Data
+import qualified Banking.IBAN.Data as Data
 import           Text.Read (Lexeme(Ident), Read(readPrec), parens, prec, readMaybe, readPrec, lexP)
 
 data IBAN = IBAN {rawIBAN :: Text}

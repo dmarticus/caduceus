@@ -1,4 +1,4 @@
-module Main
+module Banking.IBAN
   ( IBAN()
   , IBANError(..)
   , country
@@ -6,7 +6,7 @@ module Main
   , parseIBAN
   ) where
 
-import IBAN.Internal
-import IBAN.Data
+import Banking.IBAN.Internal
+import Banking.IBAN.Data
 
 

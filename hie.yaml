@@ -4,4 +4,4 @@ cradle:
       component: "lib:caduceus"
 
     - path: "test"
-      component: "caduceus:test:tests"
+      component: "caduceus:tests"

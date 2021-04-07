@@ -1,9 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Main (main) where
 
 import Control.Arrow
 import Data.Either
-import Main
+import Banking.IBAN
 import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -13,7 +12,6 @@ import qualified Data.Text as T
 main :: IO ()
 main = defaultMain $ testGroup "all tests"
   [ testGroup "IBAN Registry Examples validate" registryTests
-  , testGroup "German legacy account transformation" germanLegacyTests
   ]
 
 registryTests = map mkTestCase R.examples
