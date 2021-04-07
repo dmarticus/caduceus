@@ -1,0 +1,7 @@
+cradle:
+  cabal:
+    - path: "src"
+      component: "lib:caduceus"
+
+    - path: "test"
+      component: "caduceus:test:tests"
