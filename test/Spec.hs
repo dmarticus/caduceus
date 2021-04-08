@@ -1,20 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import Control.Arrow
-import Data.Either
 import Wires.IBAN
 import Test.Tasty
 import Test.Tasty.HUnit
 
-import qualified IBANRegistryExamples as R
-import qualified Data.Text as T
+import qualified ExampleIBANs as I
 
 main :: IO ()
 main = defaultMain $ testGroup "all tests"
   [ testGroup "IBAN Registry Examples validate" registryTests
   ]
 
-registryTests = map mkTestCase R.examples
+registryTests :: [TestTree]
+registryTests = map mkTestCase I.examples
   where
     mkTestCase ex = testCase ("iban " ++ show ex) $ assertRight (parseIBAN ex)
 

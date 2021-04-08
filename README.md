@@ -16,4 +16,4 @@ At this point, caduceus exposes the `Wires.IBAN` module, which let's you parse I
 
 ## Future Work
 
-Coming soon I want to implement the `Wires.SWIFT` module, which will provide the same `parse`, `pretty`, and `country` functionality for [SWIFT codes](https://en.wikipedia.org/wiki/Society_for_Worldwide_Interbank_Financial_Telecommunication). 
+Coming soon I want to implement the `Wires.SWIFT` module, which will provide the same `parse`, `pretty`, and `country` functionality for [SWIFT codes](https://en.wikipedia.org/wiki/Society_for_Worldwide_Interbank_Financial_Telecommunication).

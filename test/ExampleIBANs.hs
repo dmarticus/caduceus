@@ -1,8 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
-module IBANRegistryExamples
+module ExampleIBANs
   (examples) where
 
-import Wires.IBAN.Internal
 import Data.Text (Text)
 
 examples :: [Text]

@@ -1,37 +1,35 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 module Wires.IBAN.Internal
   ( IBAN(..)
   , IBANError(..)
   , parseIBAN
   , prettyIBAN
-  , SElement
+  , SpecifiedElement
   , country
   , checkStructure
-  , parseStructure
+  , parseFormat
   , countryStructures
   , mod97_10
   ) where
 
 import           Control.Arrow (left)
 import           Data.Char (digitToInt, isAlphaNum, isDigit, isAsciiLower, isAsciiUpper, toUpper)
-import           Data.Either (either)
 import           Data.Map (Map)
-import qualified Data.Map as M
+import qualified  Data.Map as M
 import           Data.ISO3166_CountryCodes (CountryCode)
 import           Data.List (foldl')
-import           Data.Maybe (fromMaybe, isNothing)
-import           Data.Monoid ((<>))
+import           Data.Maybe (isNothing)
 import           Data.String (IsString, fromString)
 import           Data.Text (Text)
-import qualified Data.Text as T
-import           Data.Typeable (Typeable)
-import qualified Wires.IBAN.Data as Data
+import qualified  Data.Text as T
+import qualified  Wires.IBAN.Data as Data
 import           Text.Read (Lexeme(Ident), Read(readPrec), parens, prec, readMaybe, readPrec, lexP)
 
 data IBAN = IBAN {rawIBAN :: Text}
-  deriving (Eq, Typeable)
+  deriving (Eq)
 
 instance IsString IBAN where
     fromString iban = either (error . show) id $ parseIBAN $ T.pack iban
@@ -61,11 +59,11 @@ data IBANError =
   | IBANInvalidCountry Text -- ^ The country identifier is either not a
                             --   valid ISO3166-1 identifier or that country
                             --   does not issue IBANs.
-  deriving (Show, Read, Eq, Typeable)
+  deriving (Show, Read, Eq)
 
-data SElement = SElement (Char -> Bool) Int Bool
+data SpecifiedElement = SpecifiedElement (Char -> Bool) Int Bool
 
-type BBANStructure = [SElement]
+type BBANStructure = [SpecifiedElement]
 
 -- | show a IBAN in 4-blocks
 prettyIBAN :: IBAN -> Text
@@ -77,9 +75,9 @@ parseIBAN str
   | wrongChars = Left IBANInvalidCharacters
   | wrongChecksum = Left IBANWrongChecksum
   | otherwise = do
-                  country <- left IBANInvalidCountry $ countryEither s
+                  country' <- left IBANInvalidCountry $ countryEither s
                   structure <- note (IBANInvalidCountry $ T.take 2 s) $
-                                    M.lookup country countryStructures
+                                    M.lookup country' countryStructures
                   if checkStructure structure s
                     then Right $ IBAN s
                     else Left IBANInvalidStructure
@@ -91,9 +89,9 @@ parseIBAN str
 checkStructure :: BBANStructure -> Text -> Bool
 checkStructure structure s = isNothing $ foldl' step (Just s) structure
   where
-    step :: Maybe Text -> SElement -> Maybe Text
+    step :: Maybe Text -> SpecifiedElement -> Maybe Text
     step Nothing _ = Nothing
-    step (Just t) (SElement cond cnt strict) =
+    step (Just t) (SpecifiedElement cond cnt strict) =
       case T.dropWhile cond t' of
         "" -> Just r
         r' -> if strict then Nothing
@@ -101,17 +99,17 @@ checkStructure structure s = isNothing $ foldl' step (Just s) structure
       where
         (t', r) = T.splitAt cnt t
 
-parseStructure :: Text -> (CountryCode, BBANStructure)
-parseStructure completeStructure = (cc, structure)
+parseFormat :: Text -> (CountryCode, BBANStructure)
+parseFormat completeStructure = (cc, structure)
   where
     (cc', s) = T.splitAt 2 completeStructure
     cc = either err id $ readNote' ("invalid country code" <> show cc') cc'
 
     structure = case T.foldl' step (0, False, []) s of
                   (0, False, xs) -> reverse xs
-                  otherwise -> err "invalid"
+                  _ -> err "invalid"
 
-    step :: (Int, Bool, [SElement]) -> Char -> (Int, Bool, [SElement])
+    step :: (Int, Bool, [SpecifiedElement]) -> Char -> (Int, Bool, [SpecifiedElement])
     step (_,   True,   _ ) '!' = err "unexpected '!'"
     step (cnt, False,  xs) '!' = (cnt, True, xs)
     step (cnt, strict, xs)  c
@@ -125,11 +123,11 @@ parseStructure completeStructure = (cc, structure)
                       'c' -> \c' -> isAsciiUpper c' || isDigit c'
                       'e' -> (== ' ')
 
-    addElement xs repr cnt strict = (0, False, SElement repr cnt strict : xs)
-    err details = error $ "IBAN.parseStructure: " <> details <> " in " <> show s
+    addElement xs repr cnt strict = (0, False, SpecifiedElement repr cnt strict : xs)
+    err details = error $ "IBAN.parseFormat: " <> details <> " in " <> show s
 
 countryStructures :: Map CountryCode BBANStructure
-countryStructures = M.fromList $ map parseStructure Data.structures
+countryStructures = M.fromList $ map parseFormat Data.formats
 
 -- | Calculate the reordered decimal number mod 97 using Horner's rule.
 -- according to ISO 7064: mod97-10
@@ -138,7 +136,7 @@ mod97_10 = fold . reorder
   where reorder = uncurry (flip T.append) . T.splitAt 4
         fold = T.foldl' ((flip rem 97 .) . add) 0
         add n c
-          -- is that right? all examples in the internet ignore lowercase
+          -- is this right? all examples in the internet ignore lowercase
           | isAsciiLower c = add n $ toUpper c
           | isAsciiUpper c = 100*n + 10 + fromEnum c - fromEnum 'A'
           | isDigit c      = 10*n + digitToInt c
@@ -148,4 +146,4 @@ note :: e -> Maybe a -> Either e a
 note e = maybe (Left e) Right
 
 readNote' :: Read a => b -> Text -> Either b a
-readNote' note = maybe (Left note) Right . readMaybe . T.unpack
+readNote' n = maybe (Left n) Right . readMaybe . T.unpack
