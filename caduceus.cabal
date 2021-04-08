@@ -26,7 +26,7 @@ library
                     , Wires.IBAN.Internal  
   other-extensions:   OverloadedStrings
   hs-source-dirs:     src
-  ghc-options:        -Weverything -Wno-missing-exported-signatures -Wno-missing-export-lists -Wno-missing-import-lists -Wno-missed-specialisations -Wno-all-missed-specialisations -Wno-missing-local-signatures -Wno-monomorphism-restriction -Wno-missing-deriving-strategies -fdiagnostics-color=always +RTS -A128m -n2m -RTS
+  ghc-options:        -Wno-missing-exported-signatures -Wno-missing-export-lists -Wno-missing-import-lists -Wno-missed-specialisations -Wno-all-missed-specialisations -Wno-missing-local-signatures -Wno-monomorphism-restriction -Wno-missing-deriving-strategies -fdiagnostics-color=always +RTS -A128m -n2m -RTS
   build-depends:      base >=4.7 && <5
                     , containers >=0.3 && <0.7
                     , iso3166-country-codes
@@ -39,7 +39,7 @@ test-suite caduceus-test
   other-extensions:   OverloadedStrings
   other-modules:      ExampleIBANs
   hs-source-dirs:     test
-  ghc-options:        -Weverything -Wno-missing-exported-signatures -Wno-missing-export-lists -Wno-missing-import-lists -Wno-missed-specialisations -Wno-all-missed-specialisations -Wno-missing-local-signatures -Wno-monomorphism-restriction -Wno-missing-deriving-strategies -fdiagnostics-color=always +RTS -A128m -n2m -RTS
+  ghc-options:        -Wno-missing-exported-signatures -Wno-missing-export-lists -Wno-missing-import-lists -Wno-missed-specialisations -Wno-all-missed-specialisations -Wno-missing-local-signatures -Wno-monomorphism-restriction -Wno-missing-deriving-strategies -fdiagnostics-color=always +RTS -A128m -n2m -RTS
   build-depends:      base >=4.7 && <5
                     , HUnit
                     , tasty
