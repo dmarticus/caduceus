@@ -2,7 +2,7 @@
 
 import Control.Arrow
 import Data.Either
-import Banking.IBAN
+import Wires.IBAN
 import Test.Tasty
 import Test.Tasty.HUnit
 

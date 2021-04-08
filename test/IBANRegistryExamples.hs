@@ -2,7 +2,7 @@
 module IBANRegistryExamples
   (examples) where
 
-import Banking.IBAN.Internal
+import Wires.IBAN.Internal
 import Data.Text (Text)
 
 examples :: [Text]

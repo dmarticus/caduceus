@@ -1,4 +1,4 @@
-module Banking.IBAN
+module Wires.IBAN
   ( IBAN()
   , IBANError(..)
   , country
@@ -6,7 +6,7 @@ module Banking.IBAN
   , parseIBAN
   ) where
 
-import Banking.IBAN.Internal
-import Banking.IBAN.Data
+import Wires.IBAN.Internal
+import Wires.IBAN.Data
 
 

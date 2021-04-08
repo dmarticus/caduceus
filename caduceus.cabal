@@ -21,9 +21,9 @@ source-repository head
   location: https://github.com/dmarticus/caduceus
 
 library
-  exposed-modules:    Banking.IBAN
-                    , Banking.IBAN.Data
-                    , Banking.IBAN.Internal  
+  exposed-modules:    Wires.IBAN
+                    , Wires.IBAN.Data
+                    , Wires.IBAN.Internal  
   other-extensions:   OverloadedStrings
   hs-source-dirs:     src
   ghc-options:        -threaded -rtsopts -with-rtsopts=-N
