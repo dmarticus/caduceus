@@ -7,8 +7,8 @@ homepage:           https://github.com/dmarticus/caduceus#readme
 bug-reports:        https://github.com/dmarticus/caduceus/issues
 author:             Dylan Martin
 maintainer:         dmarticus@gmail.com
--- license:             MIT
--- license-file:        LICENSE
+license:            MPL-2.0
+license-file:        LICENSE
 copyright:          Dylan Martin, 2021
 category:           Finance
 build-type:         Simple
