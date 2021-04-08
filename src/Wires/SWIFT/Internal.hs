@@ -2,17 +2,15 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
-module Wires.IBAN.Internal
-  ( IBAN(..)
-  , IBANError(..)
-  , parseIBAN
-  , prettyIBAN
+module Wires.SWIFT.Internal
+  ( SWIFT(..)
+  , SWIFTError(..)
+  , parseSWIFT
   , SpecifiedElement
   , country
   , checkPattern
   , parsePattern
   , countryPatterns
-  , mod97_10
   ) where
 
 import           Control.Arrow (left)
@@ -25,66 +23,67 @@ import           Data.Maybe (isNothing)
 import           Data.String (IsString, fromString)
 import           Data.Text (Text)
 import qualified  Data.Text as T
-import qualified  Wires.IBAN.Data as Data
+import qualified  Wires.SWIFT.Data as Data
 import           Text.Read (Lexeme(Ident), Read(readPrec), parens, prec, readMaybe, readPrec, lexP)
 
-data IBAN = IBAN {rawIBAN :: Text}
+data SWIFT = SWIFT {rawSWIFT :: Text}
   deriving (Eq)
 
-instance IsString IBAN where
-    fromString iban = either (error . show) id $ parseIBAN $ T.pack iban
+instance IsString SWIFT where
+    fromString swift = either (error . show) id $ parseSWIFT $ T.pack swift
 
-instance Show IBAN where
-    showsPrec p iban = showParen (p>10) $
-        showString "fromString " . shows (prettyIBAN iban)
+instance Show SWIFT where
+    showsPrec p swift = showParen (p>10) $
+        showString "fromString " . shows swift
 
-instance Read IBAN where
+instance Read SWIFT where
     readPrec = parens $ prec 10 $ do
         Ident "fromString" <- lexP
         fromString <$> readPrec
 
--- | Get the country of the IBAN
-country :: IBAN -> CountryCode
-country = either err id . countryEither . rawIBAN
-  where err = const $ error "IBAN.country: internal inconsistency"
+-- | Get the country of the SWIFT
+country :: SWIFT -> CountryCode
+country = either err id . countryEither . rawSWIFT
+  where err = const $ error "SWIFT.country: internal inconsistency"
 
--- | Parse the Country from a text IBAN
+-- | Parse the Country from a text SWIFT
 countryEither :: Text -> Either Text CountryCode
 countryEither s = readNote' s $ T.take 2 s
 
-data IBANError =
-    IBANInvalidCharacters   -- ^ The IBAN string contains invalid characters.
-  | IBANInvalidPattern    -- ^ The IBAN string has the wrong pattern.
-  | IBANWrongChecksum       -- ^ The checksum does not match.
-  | IBANInvalidCountry Text -- ^ The country identifier is either not a
-                            --   valid ISO3166-1 identifier or that country
-                            --   does not issue IBANs.
+data SWIFTError =
+    SWIFTInvalidCharacters   -- ^ The SWIFT string contains invalid characters.
+  | SWIFTInvalidStructure    -- ^ The SWIFT string has the wrong structure.
+  | SWIFTWrongChecksum       -- ^ The checksum does not match.
+  | SWIFTInvalidCountry Text -- ^ The country identifier is either not a
+                             --   valid ISO3166-1 identifier or that country
+                             --   does not issue SWIFTs.
   deriving (Show, Read, Eq)
 
 data SpecifiedElement = SpecifiedElement (Char -> Bool) Int Bool
 
 type BBANPattern = [SpecifiedElement]
 
--- | show a IBAN in 4-blocks
-prettyIBAN :: IBAN -> Text
-prettyIBAN (IBAN str) = T.intercalate " " $ T.chunksOf 4 str
+-- | show a SWIFT code in a block pattern.
+-- Example: GENODEM1GLS would become GENO DE M1 GLS
+prettySWIFT :: SWIFT -> Text
+prettySWIFT (SWIFT str) = undefined
+-- prettySWIFT (SWIFT str) = T.intercalate " " $ T.chunksOf 4 str
 
--- | try to parse an IBAN
-parseIBAN :: Text -> Either IBANError IBAN
-parseIBAN str
-  | wrongChars = Left IBANInvalidCharacters
-  | wrongChecksum = Left IBANWrongChecksum
+-- | try to parse a SWIFT
+parseSWIFT :: Text -> Either SWIFTError SWIFT
+parseSWIFT str
+  | wrongChars = Left SWIFTInvalidCharacters
   | otherwise = do
-                  country' <- left IBANInvalidCountry $ countryEither s
-                  pattern <- note (IBANInvalidCountry $ T.take 2 s) $
+                  country' <- left SWIFTInvalidCountry $ countryEither s
+                  pattern <- note (SWIFTInvalidCountry $ T.take 2 s) $
                                     M.lookup country' countryPatterns
                   if checkPattern pattern s
-                    then Right $ IBAN s
-                    else Left IBANInvalidPattern
+                    then Right $ SWIFT s
+                    else Left SWIFTInvalidStructure
   where
     s              = T.filter (not . (== ' ')) str
     wrongChars     = T.any (not . isAlphaNum) s
-    wrongChecksum  = 1 /= mod97_10 s
+    -- wrongChecksum  = 1 /= mod97_10 s
 
 checkPattern :: BBANPattern -> Text -> Bool
 checkPattern structure s = isNothing $ foldl' step (Just s) structure
@@ -124,23 +123,24 @@ parsePattern completePattern = (cc, structure)
                       'e' -> (== ' ')
 
     addElement xs repr cnt strict = (0, False, SpecifiedElement repr cnt strict : xs)
-    err details = error $ "IBAN.parsePattern: " <> details <> " in " <> show s
+    err details = error $ "SWIFT.parsePattern: " <> details <> " in " <> show s
 
 countryPatterns :: Map CountryCode BBANPattern
 countryPatterns = M.fromList $ map parsePattern Data.patterns
 
+-- TODO remove; we don't need a checksum for SWIFT codes
 -- | Calculate the reordered decimal number mod 97 using Horner's rule.
 -- according to ISO 7064: mod97-10
-mod97_10 :: Text -> Int
-mod97_10 = fold . reorder
-  where reorder = uncurry (flip T.append) . T.splitAt 4
-        fold = T.foldl' ((flip rem 97 .) . add) 0
-        add n c
-          -- is this right? all examples in the internet ignore lowercase
-          | isAsciiLower c = add n $ toUpper c
-          | isAsciiUpper c = 100*n + 10 + fromEnum c - fromEnum 'A'
-          | isDigit c      = 10*n + digitToInt c
-          | otherwise      = error $ "IBAN.Internal.mod97: wrong char " ++ [c]
+-- mod97_10 :: Text -> Int
+-- mod97_10 = fold . reorder
+--   where reorder = uncurry (flip T.append) . T.splitAt 4
+--         fold = T.foldl' ((flip rem 97 .) . add) 0
+--         add n c
+--           -- is this right? all examples in the internet ignore lowercase
+--           | isAsciiLower c = add n $ toUpper c
+--           | isAsciiUpper c = 100*n + 10 + fromEnum c - fromEnum 'A'
+--           | isDigit c      = 10*n + digitToInt c
+--           | otherwise      = error $ "SWIFT.Internal.mod97: wrong char " ++ [c]
 
 note :: e -> Maybe a -> Either e a
 note e = maybe (Left e) Right
