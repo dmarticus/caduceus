@@ -23,7 +23,10 @@ source-repository head
 library
   exposed-modules:    Wires.IBAN
                     , Wires.IBAN.Data
-                    , Wires.IBAN.Internal  
+                    , Wires.IBAN.Internal
+                    , Wires.SWIFT
+                    , Wires.SWIFT.Data
+                    , Wires.SWIFT.Internal
   other-extensions:   OverloadedStrings
   hs-source-dirs:     src
   ghc-options:        -Wno-missing-exported-signatures -Wno-missing-export-lists -Wno-missing-import-lists -Wno-missed-specialisations -Wno-all-missed-specialisations -Wno-missing-local-signatures -Wno-monomorphism-restriction -Wno-missing-deriving-strategies -fdiagnostics-color=always +RTS -A128m -n2m -RTS
@@ -31,6 +34,7 @@ library
                     , containers >=0.3 && <0.7
                     , iso3166-country-codes
                     , text >=0.11 && <1.3
+                    , pcre-heavy
   default-language:   Haskell2010
 
 test-suite caduceus-test

@@ -8,7 +8,7 @@ The IBAN data is generated from the `IBAN Registry`; it's not auto-generated -- 
 
 Run the following command to populate the `IBAN.Data` file.  N.B. This script assumes you have [poppler](https://formulae.brew.sh/formula/poppler) installed (on Mac OS) or `pdftotext` installed (on Linux).
 
-```
+```sh
 > curl -O http://www.swift.com/dsp/resources/documents/IBAN_Registry.pdf
 > pdftotext IBAN_REGISTRY.pdf \
   | awk -v s=0 '/^[A-Z][A-Z]/ {if (s) print} /^IBAN [sS]tructure/ {s=1} /^IBAN length/ {s=0}' | grep -v 'IBAN length' > src/Wires/IBAN/Data.hs

@@ -9,9 +9,9 @@ module Wires.IBAN.Internal
   , prettyIBAN
   , SpecifiedElement
   , country
-  , checkStructure
-  , parseFormat
-  , countryStructures
+  , checkPattern
+  , parsePattern
+  , countryPatterns
   , mod97_10
   ) where
 
@@ -54,7 +54,7 @@ countryEither s = readNote' s $ T.take 2 s
 
 data IBANError =
     IBANInvalidCharacters   -- ^ The IBAN string contains invalid characters.
-  | IBANInvalidStructure    -- ^ The IBAN string has the wrong structure.
+  | IBANInvalidPattern      -- ^ The IBAN string has the wrong pattern.
   | IBANWrongChecksum       -- ^ The checksum does not match.
   | IBANInvalidCountry Text -- ^ The country identifier is either not a
                             --   valid ISO3166-1 identifier or that country
@@ -63,7 +63,7 @@ data IBANError =
 
 data SpecifiedElement = SpecifiedElement (Char -> Bool) Int Bool
 
-type BBANStructure = [SpecifiedElement]
+type BBANPattern = [SpecifiedElement]
 
 -- | show a IBAN in 4-blocks
 prettyIBAN :: IBAN -> Text
@@ -76,18 +76,18 @@ parseIBAN str
   | wrongChecksum = Left IBANWrongChecksum
   | otherwise = do
                   country' <- left IBANInvalidCountry $ countryEither s
-                  structure <- note (IBANInvalidCountry $ T.take 2 s) $
-                                    M.lookup country' countryStructures
-                  if checkStructure structure s
+                  p <- note (IBANInvalidCountry $ T.take 2 s) $
+                                    M.lookup country' countryPatterns
+                  if checkPattern p s
                     then Right $ IBAN s
-                    else Left IBANInvalidStructure
+                    else Left IBANInvalidPattern
   where
-    s              = T.filter (not . (== ' ')) str
-    wrongChars     = T.any (not . isAlphaNum) s
-    wrongChecksum  = 1 /= mod97_10 s
+    s = T.filter (/= ' ') str
+    wrongChars = T.any (not . isAlphaNum) s
+    wrongChecksum = 1 /= mod97_10 s
 
-checkStructure :: BBANStructure -> Text -> Bool
-checkStructure structure s = isNothing $ foldl' step (Just s) structure
+checkPattern :: BBANPattern -> Text -> Bool
+checkPattern p s = isNothing $ foldl' step (Just s) p
   where
     step :: Maybe Text -> SpecifiedElement -> Maybe Text
     step Nothing _ = Nothing
@@ -99,13 +99,13 @@ checkStructure structure s = isNothing $ foldl' step (Just s) structure
       where
         (t', r) = T.splitAt cnt t
 
-parseFormat :: Text -> (CountryCode, BBANStructure)
-parseFormat completeStructure = (cc, structure)
+parsePattern :: Text -> (CountryCode, BBANPattern)
+parsePattern completePattern = (cc, bp)
   where
-    (cc', s) = T.splitAt 2 completeStructure
+    (cc', s) = T.splitAt 2 completePattern
     cc = either err id $ readNote' ("invalid country code" <> show cc') cc'
 
-    structure = case T.foldl' step (0, False, []) s of
+    bp = case T.foldl' step (0, False, []) s of
                   (0, False, xs) -> reverse xs
                   _ -> err "invalid"
 
@@ -124,10 +124,10 @@ parseFormat completeStructure = (cc, structure)
                       'e' -> (== ' ')
 
     addElement xs repr cnt strict = (0, False, SpecifiedElement repr cnt strict : xs)
-    err details = error $ "IBAN.parseFormat: " <> details <> " in " <> show s
+    err details = error $ "IBAN.parsePattern: " <> details <> " in " <> show s
 
-countryStructures :: Map CountryCode BBANStructure
-countryStructures = M.fromList $ map parseFormat Data.formats
+countryPatterns :: Map CountryCode BBANPattern
+countryPatterns = M.fromList $ map parsePattern Data.patterns
 
 -- | Calculate the reordered decimal number mod 97 using Horner's rule.
 -- according to ISO 7064: mod97-10

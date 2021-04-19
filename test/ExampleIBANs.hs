@@ -5,7 +5,7 @@ module ExampleIBANs
 import Data.Text (Text)
 
 examples :: [Text]
-examples = [ "AL47212110090000000235698741"
+examples = [ "AL47212110090000000235698741" -- Albania
            , "AL47 2121 1009 0000 0002 3569 8741"
            , "AD1200012030200359100100"
            , "AD12 0001 2030 2003 5910 0100"

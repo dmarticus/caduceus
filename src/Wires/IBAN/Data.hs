@@ -1,11 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Wires.IBAN.Data
-  (formats) where
+  (patterns) where
 
 import Data.Text (Text)
 
-formats :: [Text]
-formats = [ "AL2!n8!n16!c"
+patterns :: [Text]
+patterns = [ "AL2!n8!n16!c"
           , "AD2!n4!n4!n12!c"
           , "AT2!n5!n11!n"
           , "AZ2!n4!a20!c"
