@@ -34,8 +34,7 @@ library
                     , containers >=0.3 && <0.7
                     , iso3166-country-codes
                     , text >=0.11 && <1.3
-                    , regex-tdfa-text
-                    , regex-tdfa
+                    , pcre-heavy
   default-language:   Haskell2010
 
 test-suite caduceus-test

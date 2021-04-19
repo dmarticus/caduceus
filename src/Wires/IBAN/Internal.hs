@@ -54,7 +54,7 @@ countryEither s = readNote' s $ T.take 2 s
 
 data IBANError =
     IBANInvalidCharacters   -- ^ The IBAN string contains invalid characters.
-  | IBANInvalidPattern    -- ^ The IBAN string has the wrong pattern.
+  | IBANInvalidPattern      -- ^ The IBAN string has the wrong pattern.
   | IBANWrongChecksum       -- ^ The checksum does not match.
   | IBANInvalidCountry Text -- ^ The country identifier is either not a
                             --   valid ISO3166-1 identifier or that country

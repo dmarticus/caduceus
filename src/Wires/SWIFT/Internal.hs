@@ -1,16 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 module Wires.SWIFT.Internal
   ( SWIFT(..)
   , SWIFTError(..)
   , parseSWIFT
-  , SpecifiedElement
   , country
   , checkPattern
   ) where
 
 import           Control.Arrow (left)
+import           Control.Monad (guard)
 import           Data.Char (digitToInt, isAlphaNum, isDigit, isAsciiLower, isAsciiUpper, toUpper)
 import           Data.Map (Map)
 import qualified  Data.Map as M
@@ -21,9 +22,8 @@ import           Data.String (IsString, fromString)
 import           Data.Text (Text)
 import qualified  Data.Text as T
 import qualified  Wires.SWIFT.Data as Data
-import          Text.Read (Lexeme(Ident), Read(readPrec), parens, prec, readMaybe, readPrec, lexP)
-import Text.Regex.TDFA
-import Text.Regex.TDFA.Text ()
+import           Text.Read (Lexeme(Ident), Read(readPrec), parens, prec, readMaybe, readPrec, lexP)
+import           Text.Regex.PCRE.Heavy (Regex, re, (=~))
 
 data SWIFT = SWIFT {rawSWIFT :: Text}
   deriving (Eq)
@@ -51,21 +51,18 @@ countryEither s = readNote' s $ T.take 2 s
 
 data SWIFTError =
     SWIFTInvalidCharacters   -- ^ The SWIFT string contains invalid characters.
-  | SWIFTInvalidStructure    -- ^ The SWIFT string has the wrong structure.
+  | SWIFTInvalidPattern    -- ^ The SWIFT string has the wrong structure.
   | SWIFTWrongChecksum       -- ^ The checksum does not match.
   | SWIFTInvalidCountry Text -- ^ The country identifier is either not a
                              --   valid ISO3166-1 identifier or that country
                              --   does not issue SWIFTs.
   deriving (Show, Read, Eq)
 
-data SpecifiedElement = SpecifiedElement (Char -> Bool) Int Bool
-
-type BBANPattern = [SpecifiedElement]
-
 -- | show a SWIFT code in a block pattern.
+-- TODO unimplemented
 -- Example: GENODEM1GLS would become GENO DE M1 GLS
-prettySWIFT :: SWIFT -> Text
-prettySWIFT (SWIFT str) = undefined
+-- prettySWIFT :: SWIFT -> Text
+-- prettySWIFT (SWIFT str) = undefined
 -- prettySWIFT (SWIFT str) = T.intercalate " " $ T.chunksOf 4 str
 
 -- | try to parse a SWIFT
@@ -73,24 +70,23 @@ parseSWIFT :: Text -> Either SWIFTError SWIFT
 parseSWIFT str
   | wrongChars = Left SWIFTInvalidCharacters
   | otherwise = do
-                  country' <- left SWIFTInvalidCountry $ countryEither s
                   if checkPattern str
                     then Right $ SWIFT str
-                    else Left SWIFTInvalidStructure
+                    else Left SWIFTInvalidPattern
   where
-    s              = T.filter (/= ' ') str
-    wrongChars     = T.any (not . isAlphaNum) s 
+    s = T.filter (/= ' ') str 
+    wrongChars = T.any (not . isAlphaNum) s
+
+swiftCodeRegex :: Regex
+swiftCodeRegex = [re|^[a-zA-Z]{6}[a-zA-Z0-9]{2}([a-zA-Z0-9]{3})?$|]
 
 checkPattern :: Text -> Bool
-checkPattern s = check (Just s)
-  where
-    check :: Maybe Text -> Bool
-    check Nothing = False
-    check (Just t) = t =~ swiftRegex :: Bool
-    swiftRegex = "^[a-zA-Z]{6}[a-zA-Z0-9]{2}([a-zA-Z0-9]{3})?$"
+checkPattern s = do
+  let t = T.toUpper $ T.strip s
+  t =~ swiftCodeRegex
 
-note :: e -> Maybe a -> Either e a
-note e = maybe (Left e) Right
+-- note :: e -> Maybe a -> Either e a
+-- note e = maybe (Left e) Right
 
 readNote' :: Read a => b -> Text -> Either b a
 readNote' n = maybe (Left n) Right . readMaybe . T.unpack
