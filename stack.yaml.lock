@@ -3,7 +3,14 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages: []
+packages:
+- completed:
+    hackage: regex-tdfa-text-1.0.0.3@sha256:fb72123627eadf43dd5ca74a2896940d50aac291e61f62177960f0563f7d5c03,1180
+    pantry-tree:
+      size: 293
+      sha256: 274206c4f30a2c85cc8daefcb0d221b45010a28f1c0f39295189850eecc978e4
+  original:
+    hackage: regex-tdfa-text-1.0.0.3@sha256:fb72123627eadf43dd5ca74a2896940d50aac291e61f62177960f0563f7d5c03,1180
 snapshots:
 - completed:
     size: 565720

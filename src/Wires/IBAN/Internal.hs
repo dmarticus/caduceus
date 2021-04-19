@@ -76,18 +76,18 @@ parseIBAN str
   | wrongChecksum = Left IBANWrongChecksum
   | otherwise = do
                   country' <- left IBANInvalidCountry $ countryEither s
-                  pattern <- note (IBANInvalidCountry $ T.take 2 s) $
+                  p <- note (IBANInvalidCountry $ T.take 2 s) $
                                     M.lookup country' countryPatterns
-                  if checkPattern pattern s
+                  if checkPattern p s
                     then Right $ IBAN s
                     else Left IBANInvalidPattern
   where
-    s              = T.filter (not . (== ' ')) str
-    wrongChars     = T.any (not . isAlphaNum) s
-    wrongChecksum  = 1 /= mod97_10 s
+    s = T.filter (/= ' ') str
+    wrongChars = T.any (not . isAlphaNum) s
+    wrongChecksum = 1 /= mod97_10 s
 
 checkPattern :: BBANPattern -> Text -> Bool
-checkPattern structure s = isNothing $ foldl' step (Just s) structure
+checkPattern p s = isNothing $ foldl' step (Just s) p
   where
     step :: Maybe Text -> SpecifiedElement -> Maybe Text
     step Nothing _ = Nothing
@@ -100,12 +100,12 @@ checkPattern structure s = isNothing $ foldl' step (Just s) structure
         (t', r) = T.splitAt cnt t
 
 parsePattern :: Text -> (CountryCode, BBANPattern)
-parsePattern completePattern = (cc, structure)
+parsePattern completePattern = (cc, bp)
   where
     (cc', s) = T.splitAt 2 completePattern
     cc = either err id $ readNote' ("invalid country code" <> show cc') cc'
 
-    structure = case T.foldl' step (0, False, []) s of
+    bp = case T.foldl' step (0, False, []) s of
                   (0, False, xs) -> reverse xs
                   _ -> err "invalid"
 
