@@ -1,6 +1,6 @@
 cabal-version:      2.4
 name:               caduceus
-version:            0.1.0.0
+version:            0.1.1.0
 synopsis:           A library to validate and generate IBANs and SWIFT codes.
 description:        Validate and generate international wire data.  Handles IBANs and SWIFT codes.
 homepage:           https://github.com/dmarticus/caduceus#readme

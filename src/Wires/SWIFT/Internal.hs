@@ -85,8 +85,5 @@ checkPattern s = do
   let t = T.toUpper $ T.strip s
   t =~ swiftCodeRegex
 
--- note :: e -> Maybe a -> Either e a
--- note e = maybe (Left e) Right
-
 readNote' :: Read a => b -> Text -> Either b a
 readNote' n = maybe (Left n) Right . readMaybe . T.unpack
